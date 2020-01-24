@@ -88,12 +88,13 @@ class Client
     private function _exec ($url)
     {
         $response_values = [
+            'url'               => $url,
             'user_agent'        => $this->_user_agent,
-            'body'              => '',
             'response_code'     => '',
             'content_type'      => '',
             'response_string'   => '',
             'response_headers'  => [],
+            'body'              => '',
         ];
         curl_setopt($this->_curl, CURLOPT_USERAGENT, $response_values['user_agent']);
         //  If the URL begins with "https" and SSL is not disabled, then

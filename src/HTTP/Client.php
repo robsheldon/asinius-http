@@ -79,11 +79,13 @@ class Client
      *
      * @author  Rob Sheldon <rob@robsheldon.com>
      *
+     * @param   string      $url
+     *
      * @throws  RuntimeException
      *
-     * @return  mixed
+     * @return  \Asinius\HTTP\Response
      */
-    private function _exec ()
+    private function _exec ($url)
     {
         $response_values = [
             'user_agent'        => $this->_user_agent,
@@ -94,6 +96,13 @@ class Client
             'response_headers'  => [],
         ];
         curl_setopt($this->_curl, CURLOPT_USERAGENT, $response_values['user_agent']);
+        //  If the URL begins with "https" and SSL is not disabled, then
+        //  temporarily enable it.
+        $ssl_mode = $this->_ssl_mode;
+        if ( stripos($url, 'https://') === 0 && $ssl_mode == SSL_OFF ) {
+            $this->ssl_mode(SSL_ON);
+        }
+        curl_setopt($this->_curl, CURLOPT_URL, $url);
         $response_values['body'] = curl_exec($this->_curl);
         if ( ($error_number = curl_errno($this->_curl)) !== 0 ) {
             if ( $error_number == 6 ) {
@@ -118,7 +127,11 @@ class Client
             list($label, $value) = explode(': ', $header, 2);
             $response_values['response_headers'][$label] = $value;
         }
-        return $response_values;
+        //  Restore the SSL mode.
+        if ( $ssl_mode != $this->_ssl_mode ) {
+            $this->ssl_mode($ssl_mode);
+        }
+        return new Response($response_values);
     }
 
 
@@ -223,24 +236,15 @@ class Client
      *
      * @throws  RuntimeException
      * 
-     * @return  mixed
+     * @return  \Asinius\HTTP\Response
      */
     public function get ($url, $parameters = false, $headers = [])
     {
         if ( is_null($this->_curl) ) {
             throw new \RuntimeException('The internal curl object has disappeared');
         }
-        $ssl_mode = $this->_ssl_mode;
-        if ( stripos($url, 'https://') === 0 && $ssl_mode == SSL_OFF ) {
-            $this->ssl_mode(SSL_ON);
-        }
         curl_setopt($this->_curl, CURLOPT_HTTPGET, true);
-        curl_setopt($this->_curl, CURLOPT_URL, $url);
-        $response = new \Asinius\HTTP\Response($this->_exec());
-        if ( $ssl_mode != $this->_ssl_mode ) {
-            $this->ssl_mode($ssl_mode);
-        }
-        return $response;
+        return $this->_exec($url);
     }
 
 
@@ -255,30 +259,21 @@ class Client
      *
      * @throws  RuntimeException
      * 
-     * @return  mixed
+     * @return  \Asinius\HTTP\Response
      */
     public function post ($url, $parameters = false, $headers = [])
     {
         if ( is_null($this->_curl) ) {
             throw new \RuntimeException('The internal curl object has disappeared');
         }
-        $ssl_mode = $this->_ssl_mode;
-        if ( stripos($url, 'https://') === 0 && $ssl_mode == SSL_OFF ) {
-            $this->ssl_mode(SSL_ON);
-        }
         curl_setopt($this->_curl, CURLOPT_POST, true);
-        curl_setopt($this->_curl, CURLOPT_URL, $url);
         if ( $parameters !== false ) {
             if ( is_array($parameters) ) {
                 $parameters = http_build_query($parameters);
             }
             curl_setopt($this->_curl, CURLOPT_POSTFIELDS, $parameters);
         }
-        $response = new \Asinius\HTTP\Response($this->_exec());
-        if ( $ssl_mode != $this->_ssl_mode ) {
-            $this->ssl_mode($ssl_mode);
-        }
-        return $response;
+        return $this->_exec($url);
     }
 
 }

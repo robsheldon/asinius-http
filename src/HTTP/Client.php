@@ -8,7 +8,7 @@
 *                                                                              *
 *   LICENSE                                                                    *
 *                                                                              *
-*   Copyright (c) 2020 Rob Sheldon <rob@robsheldon.com>                        *
+*   Copyright (c) 2020 Rob Sheldon <rob@rescue.dev>                            *
 *                                                                              *
 *   Permission is hereby granted, free of charge, to any person obtaining a    *
 *   copy of this software and associated documentation files (the "Software"), *
@@ -77,7 +77,7 @@ class Client
     /**
      * Execute the current request and parse the response.
      *
-     * @author  Rob Sheldon <rob@robsheldon.com>
+     * @author  Rob Sheldon <rob@rescue.dev>
      *
      * @param   string      $url
      *
@@ -138,7 +138,7 @@ class Client
     /**
      * Return a new http client.
      *
-     * @author  Rob Sheldon <rob@robsheldon.com>
+     * @author  Rob Sheldon <rob@rescue.dev>
      *
      * @return  http
      */
@@ -158,7 +158,7 @@ class Client
     /**
      * Destroy the current curl object.
      *
-     * @author  Rob Sheldon <rob@robsheldon.com>
+     * @author  Rob Sheldon <rob@rescue.dev>
      *
      * @return  void
      */
@@ -175,7 +175,7 @@ class Client
      * verification by default except for URLs beginning in "https://"; SSL_DSIABLE
      * will turn off SSL verification under all circumstances.
      *
-     * @author  Rob Sheldon <rob@robsheldon.com>
+     * @author  Rob Sheldon <rob@rescue.dev>
      *
      * @param   int         $mode
      *
@@ -208,7 +208,7 @@ class Client
     /**
      * Set the user agent string for the current client.
      *
-     * @author  Rob Sheldon <rob@robsheldon.com>
+     * @author  Rob Sheldon <rob@rescue.dev>
      *
      * @param   string|int  $user_agent
      *
@@ -228,7 +228,7 @@ class Client
     /**
      * Send an http GET request and return the body of the response, if any.
      *
-     * @author  Rob Sheldon <rob@robsheldon.com>
+     * @author  Rob Sheldon <rob@rescue.dev>
      *
      * @param   string      $url
      * @param   mixed       $parameters
@@ -251,7 +251,7 @@ class Client
     /**
      * Send an http POST request and return the body of the response, if any.
      *
-     * @author  Rob Sheldon <rob@robsheldon.com>
+     * @author  Rob Sheldon <rob@rescue.dev>
      *
      * @param   string      $url
      * @param   mixed       $parameters

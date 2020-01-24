@@ -126,7 +126,7 @@ class Response
      *
      * @internal
      *
-     * @return  null
+     * @return  void
      */
     public function __construct ($response_values)
     {

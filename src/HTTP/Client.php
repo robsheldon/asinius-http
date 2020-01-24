@@ -52,10 +52,6 @@ namespace Asinius\HTTP;
 *                                                                              *
 *******************************************************************************/
 
-//  Error codes familiar to C programmers.
-//  Invalid function argument
-defined('EINVAL')   or define('EINVAL', 22);
-
 //  User agent string to be used if none is specified.
 const DEFAULT_USERAGENT = 'Mozilla/5.0 (cURL; x64) (KHTML, like Gecko) Asinius HTTP Client';
 
@@ -95,7 +91,7 @@ class Client
             'response_code'     => '',
             'content_type'      => '',
             'response_string'   => '',
-            'response_headers'  => '',
+            'response_headers'  => [],
         ];
         curl_setopt($this->_curl, CURLOPT_USERAGENT, $response_values['user_agent']);
         $response_values['body'] = curl_exec($this->_curl);
@@ -177,7 +173,7 @@ class Client
     public function ssl_mode ($mode)
     {
         if ( ! in_array($mode, [SSL_ON, SSL_OFF], true) ) {
-            throw new \RuntimeException('Not a supported SSL mode: ' . gettype($mode), EINVAL);
+            throw new \RuntimeException('Not a supported SSL mode: ' . gettype($mode), \Asinius\EINVAL);
         }
         if ( $mode !== $this->_ssl_mode ) {
             switch ($mode) {
@@ -210,7 +206,7 @@ class Client
     public function user_agent ($user_agent)
     {
         if ( ! is_string($user_agent) ) {
-            throw new \RuntimeException('Not a supported user agent type: ' . gettype($user_agent), EINVAL);
+            throw new \RuntimeException('Not a supported user agent type: ' . gettype($user_agent), \Asinius\EINVAL);
         }
         $this->_user_agent = $user_agent;
     }

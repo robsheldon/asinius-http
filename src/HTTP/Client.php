@@ -59,17 +59,6 @@ defined('EINVAL')   or define('EINVAL', 22);
 //  User agent string to be used if none is specified.
 const DEFAULT_USERAGENT = 'Mozilla/5.0 (cURL; x64) (KHTML, like Gecko) Asinius HTTP Client';
 
-//  Use this to select a random user agent from the list below.
-const RANDOM_USERAGENT  = -1;
-
-//  Some common user agent strings as of March 2019.
-const COMMON_USERAGENTS = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:65.0) Gecko/20100101 Firefox/65.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.3 Safari/605.1.15',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
-];
-
 //  Supported SSL modes: "on" enables full host checking & etc., "off" disables it.
 const SSL_ON           = 1;
 const SSL_OFF          = 0;
@@ -100,13 +89,14 @@ class Client
      */
     private function _exec ()
     {
-        $response_values = array();
-        if ( $this->_user_agent === RANDOM_USERAGENT ) {
-            $response_values['user_agent'] = COMMON_USERAGENTS[array_rand(COMMON_USERAGENTS)];
-        }
-        else {
-            $response_values['user_agent'] = $this->_user_agent;
-        }
+        $response_values = [
+            'user_agent'        => $this->_user_agent,
+            'body'              => '',
+            'response_code'     => '',
+            'content_type'      => '',
+            'response_string'   => '',
+            'response_headers'  => '',
+        ];
         curl_setopt($this->_curl, CURLOPT_USERAGENT, $response_values['user_agent']);
         $response_values['body'] = curl_exec($this->_curl);
         if ( ($error_number = curl_errno($this->_curl)) !== 0 ) {
@@ -219,7 +209,7 @@ class Client
      */
     public function user_agent ($user_agent)
     {
-        if ( ! is_string($user_agent) && $user_agent !== RANDOM_USERAGENT ) {
+        if ( ! is_string($user_agent) ) {
             throw new \RuntimeException('Not a supported user agent type: ' . gettype($user_agent), EINVAL);
         }
         $this->_user_agent = $user_agent;

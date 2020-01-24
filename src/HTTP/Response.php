@@ -130,7 +130,7 @@ class Response
      */
     public function __construct ($response_values)
     {
-        \Asinius\Asinius::enforce_created_by('\Asinius\HTTP\Client');
+        \Asinius\Asinius::assert_parent('\Asinius\HTTP\Client');
         $this->_raw = $response_values;
         $this->_properties['code'] = $response_values['response_code'];
     }
@@ -169,7 +169,7 @@ class Response
                 if ( array_key_exists($property, $this->_raw) ) {
                     return $this->_raw[$property];
                 }
-                throw new \RuntimeException("Undefined property: $property");
+                throw new \RuntimeException("Undefined property: \"$property\"");
         }
     }
 

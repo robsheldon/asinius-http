@@ -108,8 +108,8 @@ class Client
         if ( ($error_number = curl_errno($this->_curl)) !== 0 ) {
             if ( $error_number == 6 ) {
                 //  Failed to resolve host. Is there a network connection?
-                //  TODO: Verify the network connection status here.
-                ;
+                $connection = \Asinius\Network::test();
+                throw new \RuntimeException("cURL could not connect to the server for $url. A network test has been completed. " . $connection['message']);
             }
             throw new \RuntimeException(curl_error($this->_curl), $error_number);
         }

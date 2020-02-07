@@ -137,7 +137,7 @@ class Client
     /**
      * Return a new http client.
      *
-     * @return  http
+     * @return  \Asinius\HTTP\Client
      */
     public function __construct ()
     {

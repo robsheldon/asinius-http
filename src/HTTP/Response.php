@@ -66,8 +66,6 @@ class Response implements \Asinius\Datastream
     /**
      * Parse the content-type in the response and store a sanitized copy of it.
      *
-     * @author  Rob Sheldon <rob@robsheldon.com>
-     *
      * @return  void
      */
     private function _parse_content_type ()
@@ -90,8 +88,6 @@ class Response implements \Asinius\Datastream
     /**
      * Parse the response body: return plain text or unaltered html and decode
      * JSON.
-     *
-     * @author  Rob Sheldon <rob@robsheldon.com>
      *
      * @throws  RuntimeException
      *
@@ -122,7 +118,6 @@ class Response implements \Asinius\Datastream
      * Create a new http_response object from a set of properties. Intended to
      * be called only by the http_client class.
      *
-     * @author  Rob Sheldon <rob@robsheldon.com>
      * @param   array       $response_values
      *
      * @throws  RuntimeException
@@ -152,8 +147,6 @@ class Response implements \Asinius\Datastream
 
     /**
      * Return the value of a response property.
-     *
-     * @author  Rob Sheldon <rob@robsheldon.com>
      *
      * @param   string      $property
      *

@@ -77,8 +77,6 @@ class Client
     /**
      * Execute the current request and parse the response.
      *
-     * @author  Rob Sheldon <rob@rescue.dev>
-     *
      * @param   string      $url
      *
      * @throws  RuntimeException
@@ -139,8 +137,6 @@ class Client
     /**
      * Return a new http client.
      *
-     * @author  Rob Sheldon <rob@rescue.dev>
-     *
      * @return  http
      */
     public function __construct ()
@@ -159,8 +155,6 @@ class Client
     /**
      * Destroy the current curl object.
      *
-     * @author  Rob Sheldon <rob@rescue.dev>
-     *
      * @return  void
      */
     public function __destruct ()
@@ -175,8 +169,6 @@ class Client
      * for all subsequent calls through this client; SSL_OFF will turn off SSL
      * verification by default except for URLs beginning in "https://"; SSL_DSIABLE
      * will turn off SSL verification under all circumstances.
-     *
-     * @author  Rob Sheldon <rob@rescue.dev>
      *
      * @param   int         $mode
      *
@@ -209,8 +201,6 @@ class Client
     /**
      * Set the user agent string for the current client.
      *
-     * @author  Rob Sheldon <rob@rescue.dev>
-     *
      * @param   string|int  $user_agent
      *
      * @throws  RuntimeException
@@ -228,8 +218,6 @@ class Client
 
     /**
      * Send an http GET request and return the body of the response, if any.
-     *
-     * @author  Rob Sheldon <rob@rescue.dev>
      *
      * @param   string      $url
      * @param   mixed       $parameters
@@ -251,8 +239,6 @@ class Client
 
     /**
      * Send an http POST request and return the body of the response, if any.
-     *
-     * @author  Rob Sheldon <rob@rescue.dev>
      *
      * @param   string      $url
      * @param   mixed       $parameters

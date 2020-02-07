@@ -53,11 +53,14 @@ namespace Asinius\HTTP;
 *                                                                              *
 *******************************************************************************/
 
-class Response
+class Response implements \Asinius\Datastream
 {
 
     private $_raw           = [];
+    private $_immutable     = [];
     private $_properties    = [];
+    private $_read_index    = 0;
+    private $_state         = \Asinius\Datastream::STATUS_CLOSED;
 
 
     /**
@@ -77,7 +80,7 @@ class Response
         ];
         foreach ($content_type_patterns as $pattern => $content_type) {
             if ( preg_match($pattern, $this->_raw['content_type']) === 1 ) {
-                $this->_properties['content_type'] = $content_type;
+                $this->_immutable['content_type'] = $content_type;
                 break;
             }
         }
@@ -104,12 +107,12 @@ class Response
                 if ( empty($this->_raw['body']) || is_null($json_body = json_decode($this->_raw['body'], true)) ) {
                     throw new \RuntimeException('Server returned an invalid JSON response');
                 }
-                $this->_properties['body'] = $json_body;
+                $this->_immutable['body'] = $json_body;
                 break;
             case 'text/html':
             case 'text/plain':
             default:
-                $this->_properties['body'] = $this->_raw['body'];
+                $this->_immutable['body'] = $this->_raw['body'];
                 break;
         }
     }
@@ -132,7 +135,18 @@ class Response
     {
         \Asinius\Asinius::assert_parent('\Asinius\HTTP\Client');
         $this->_raw = $response_values;
-        $this->_properties['code'] = $response_values['response_code'];
+        $this->_immutable['code'] = $response_values['response_code'];
+    }
+
+
+    /**
+     * Support for __destruct() is required for Datastream classes, but there's
+     * currently no cleanup to do here.
+     *
+     * @return  void
+     */
+    public function __destruct ()
+    {
     }
 
 
@@ -151,26 +165,219 @@ class Response
     {
         switch ($property) {
             case 'body':
-                if ( ! array_key_exists('body', $this->_properties) ) {
+                if ( ! array_key_exists('body', $this->_immutable) ) {
                     $this->_parse_body();
                 }
-                return $this->_properties['body'];
+                return $this->_immutable['body'];
             case 'content_type':
-                if ( ! array_key_exists('content_type', $this->_properties) ) {
+                if ( ! array_key_exists('content_type', $this->_immutable) ) {
                     $this->_parse_content_type();
                 }
-                return $this->_properties['content_type'];
+                return $this->_immutable['content_type'];
             case 'raw':
                 return $this->_raw;
             default:
-                if ( array_key_exists($property, $this->_properties) ) {
-                    return $this->_properties[$property];
+                if ( array_key_exists($property, $this->_immutable) ) {
+                    return $this->_immutable[$property];
                 }
                 if ( array_key_exists($property, $this->_raw) ) {
                     return $this->_raw[$property];
+                }
+                if ( array_key_exists($property, $this->_properties) ) {
+                    return $this->_properties[$properties];
                 }
                 throw new \RuntimeException("Undefined property: \"$property\"");
         }
     }
 
+
+    /**
+     * Support for __set() is required for Datastream classes. A Response object
+     * is intended to be mostly immutable, but there's no reason not to allow
+     * application code to set and retrieve custom properties.
+     *
+     * @param   string      $property
+     * @param   mixed       $value
+     *
+     * @throws  \RuntimeException
+     * 
+     * @return  void
+     */
+    public function __set ($property, $value)
+    {
+        if ( array_key_exists($property, $this->_immutable) || array_key_exists($property, $this->_raw) ) {
+            throw new \RuntimeException("The $property is immutable");
+        }
+        $this->_properties[$property] = $value;
+    }
+
+
+    /**
+     * __isset() is needed to complete support for __get() and __set().
+     *
+     * @param   string      $property
+     *
+     * @return  boolean
+     */
+    public function __isset ($property)
+    {
+        return array_key_exists($property, $this->_immutable) || array_key_exists($property, $this->_properties);
+    }
+
+
+    /**
+     * An open() function is required for Datastream compatibility.
+     * Nothing to do here.
+     *
+     * @return  void
+     */
+    public function open ()
+    {
+        if ( $this->_state !== \Asinius\Datastream::STATUS_ERROR ) {
+            $this->_state = \Asinius\Datastream::STATUS_READY;
+        }
+    }
+
+
+    /**
+     * Return true if the object is not in an error condition, false otherwise.
+     *
+     * @return  boolean
+     */
+    public function ready ()
+    {
+        //  TODO: This should capture any HTTP response errors and return false
+        //  accordingly.
+        return $this->_state === \Asinius\Datastream::STATUS_READY;
+    }
+
+
+    /**
+     * Return any errors from the server. TODO.
+     * 
+     * @return  array
+     */
+    public function errors ()
+    {
+        return [];
+    }
+
+
+    /**
+     * Required for Datastream compatibility. Not supported here.
+     *
+     * @return  void
+     */
+    public function search ($query)
+    {
+    }
+
+
+    /**
+     * Return true if there is nothing more to read(), false otherwise.
+     */
+    public function empty ()
+    {
+        return is_null($this->peek());
+    }
+
+
+    /**
+     * Return the body of the HTTP response or the next JSON element of the
+     * response if the content-type was application/json.
+     *
+     * @return  mixed 
+     */
+    public function read ()
+    {
+        $out = $this->peek;
+        if ( ! is_null($out) ) {
+            if ( is_string($out) ) {
+                $this->_read_index += strlen($out);
+            }
+            else if ( is_array($out) ) {
+                //  Need to advance our counter (for consistency) as well as PHP's
+                //  internal array cursor.
+                $this->_read_index++;
+                next($this->body);
+            }
+        }
+        return $out;
+    }
+
+
+    /**
+     * Return the next chunk of data from the response, if any, without advancing
+     * the index of the read buffer.
+     *
+     * @return  mixed
+     */
+    public function peek ()
+    {
+        if ( $this->_state === \Asinius\Datastream::STATUS_READY ) {
+            if ( is_string($this->body) && $this->_read_index < strlen($this->body) ) {
+                return substr($this->body, $this->_read_index);
+            }
+            else if ( is_array($this->body) && ! is_null(key($this->body)) ) {
+                return [key($this->body) => current($this->body)];
+            }
+        }
+        return null;
+    }
+
+
+    /**
+     * Rewind the internal data buffer some numebr of bytes or elements (if JSON).
+     *
+     * @param   integer     $count
+     * 
+     * @return  void
+     */
+    public function rewind ($count = 0)
+    {
+        if ( $count < 0 || $this->_state !== \Asinius\Datastream::STATUS_READY ) {
+            //  Tsk.
+            return;
+        }
+        if ( is_string($this->body) ) {
+            $this->_read_index = $count === 0 ? 0 : max($this->_read_index - $count, 0);
+        }
+        else if ( is_array($this->body) ) {
+            if ( $count === 0 ) {
+                reset($this->body);
+                $this->_read_index = 0;
+            }
+            else {
+                while ( $count-- > 0 ) {
+                    prev($this->body);
+                    $this->_read_index--;
+                    if ( is_null(key($this->body)) ) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Write to the http response. This is unsupported for this object.
+     *
+     * @return  void
+     */
+    public function write ($data)
+    {
+    }
+
+
+    /**
+     * Close the Datastream and prevent any further reads or writes.
+     * (Property access should still be okay.)
+     *
+     * @return  void
+     */
+    public function close ()
+    {
+        $this->_state = \Asinius\Datastream::STATUS_CLOSED;
+    }
 }

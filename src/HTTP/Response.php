@@ -283,7 +283,7 @@ class Response implements \Asinius\Datastream
      */
     public function read ()
     {
-        $out = $this->peek;
+        $out = $this->peek();
         if ( ! is_null($out) ) {
             if ( is_string($out) ) {
                 $this->_read_index += strlen($out);

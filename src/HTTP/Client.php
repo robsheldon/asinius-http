@@ -118,13 +118,29 @@ class Client
         $response_values['content_type']  = curl_getinfo($this->_curl, CURLINFO_CONTENT_TYPE);
         //  Separate the returned headers from the returned body by looking
         //  for the first blank line.
-        list($headers, $body) = preg_split('/((\r\n){2})|(\r{2})|(\n{2})/', $response_values['body'], 2);
-        $response_values['body'] = $body;
-        $headers = preg_split('/(\r\n)|\r|\n/', $headers);
-        $response_values['response_string'] = array_shift($headers);
-        foreach ($headers as $header) {
-            list($label, $value) = explode(': ', $header, 2);
-            $response_values['response_headers'][$label] = $value;
+        while ( true ) {
+            //  Loop here because 301 redirects can cause mutliple sets of
+            //  headers to be returned.
+            list($headers, $body) = preg_split('/((\r\n){2})|(\r{2})|(\n{2})/', $response_values['body'], 2);
+            $response_values['body'] = $body;
+            $headers = preg_split('/(\r\n)|\r|\n/', $headers);
+            $response_values['response_string'] = array_shift($headers);
+            foreach ($headers as $header) {
+                list($label, $value) = explode(': ', $header, 2);
+                $response_values['response_headers'][$label] = $value;
+            }
+            //  Try to parse the response string, and if it contains a code
+            //  that implies more headers, then keep processing them.
+            //  TODO: There should probably be some fancier sanity-checking
+            //  here to ensure that there actually is another chunk of headers
+            //  to process.
+            if ( preg_match('|^HTTP/\d\.\d\s+(?<code>\d+)|', $response_values['response_string'], $parts) == 1 ) {
+                switch ($parts['code']) {
+                    case '301':
+                        continue 2;
+                }
+            }
+            break;
         }
         //  Restore the SSL mode.
         if ( $ssl_mode != $this->_ssl_mode ) {

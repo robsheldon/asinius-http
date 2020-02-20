@@ -4,7 +4,7 @@
 *                                                                              *
 *   Asinius\HTTP\URL                                                           *
 *                                                                              *
-*   Coordinates operations for http-like URLs.
+*   Coordinates operations for http-like URLs.                                 *
 *                                                                              *
 *   LICENSE                                                                    *
 *                                                                              *
@@ -62,6 +62,7 @@ class URL
         $response->open();
         return $response;
     }
+
 
     /**
      * Set or return the client object used for http requests.

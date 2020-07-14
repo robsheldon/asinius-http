@@ -60,7 +60,7 @@ class Response implements \Asinius\Datastream
     private $_immutable     = [];
     private $_properties    = [];
     private $_read_index    = 0;
-    private $_state         = \Asinius\Datastream::STATUS_CLOSED;
+    private $_state         = \Asinius\Datastream::STREAM_UNOPENED;
 
 
     /**
@@ -226,8 +226,8 @@ class Response implements \Asinius\Datastream
      */
     public function open ()
     {
-        if ( $this->_state !== \Asinius\Datastream::STATUS_ERROR ) {
-            $this->_state = \Asinius\Datastream::STATUS_READY;
+        if ( $this->_state !== \Asinius\Datastream::STREAM_ERROR ) {
+            $this->_state = \Asinius\Datastream::STREAM_CONNECTED;
         }
     }
 
@@ -241,7 +241,7 @@ class Response implements \Asinius\Datastream
     {
         //  TODO: This should capture any HTTP response errors and return false
         //  accordingly.
-        return $this->_state === \Asinius\Datastream::STATUS_READY;
+        return $this->_state === \Asinius\Datastream::STREAM_CONNECTED;
     }
 
 
@@ -307,7 +307,7 @@ class Response implements \Asinius\Datastream
      */
     public function peek ()
     {
-        if ( $this->_state === \Asinius\Datastream::STATUS_READY ) {
+        if ( $this->_state === \Asinius\Datastream::STREAM_CONNECTED ) {
             if ( is_string($this->body) && $this->_read_index < strlen($this->body) ) {
                 return substr($this->body, $this->_read_index);
             }
@@ -328,7 +328,7 @@ class Response implements \Asinius\Datastream
      */
     public function rewind ($count = 0)
     {
-        if ( $count < 0 || $this->_state !== \Asinius\Datastream::STATUS_READY ) {
+        if ( $count < 0 || $this->_state !== \Asinius\Datastream::STREAM_CONNECTED ) {
             //  Tsk.
             return;
         }
@@ -371,6 +371,6 @@ class Response implements \Asinius\Datastream
      */
     public function close ()
     {
-        $this->_state = \Asinius\Datastream::STATUS_CLOSED;
+        $this->_state = \Asinius\Datastream::STREAM_CLOSED;
     }
 }

@@ -131,6 +131,9 @@ class Response implements \Asinius\Datastream
         \Asinius\Asinius::assert_parent('\Asinius\HTTP\Client');
         $this->_raw = $response_values;
         $this->_immutable['code'] = $response_values['response_code'];
+        if ( $this->_state !== \Asinius\Datastream::STREAM_ERROR ) {
+            $this->_state = \Asinius\Datastream::STREAM_CONNECTED;
+        }
     }
 
 
@@ -226,9 +229,6 @@ class Response implements \Asinius\Datastream
      */
     public function open ()
     {
-        if ( $this->_state !== \Asinius\Datastream::STREAM_ERROR ) {
-            $this->_state = \Asinius\Datastream::STREAM_CONNECTED;
-        }
     }
 
 
@@ -292,7 +292,7 @@ class Response implements \Asinius\Datastream
                 //  Need to advance our counter (for consistency) as well as PHP's
                 //  internal array cursor.
                 $this->_read_index++;
-                next($this->body);
+                next($this->_immutable['body']);
             }
         }
         return $out;
@@ -311,8 +311,8 @@ class Response implements \Asinius\Datastream
             if ( is_string($this->body) && $this->_read_index < strlen($this->body) ) {
                 return substr($this->body, $this->_read_index);
             }
-            else if ( is_array($this->body) && ! is_null(key($this->body)) ) {
-                return [key($this->body) => current($this->body)];
+            else if ( is_array($this->body) && ! is_null(key($this->_immutable['body'])) ) {
+                return [key($this->_immutable['body']) => current($this->_immutable['body'])];
             }
         }
         return null;
@@ -337,14 +337,14 @@ class Response implements \Asinius\Datastream
         }
         else if ( is_array($this->body) ) {
             if ( $count === 0 ) {
-                reset($this->body);
+                reset($this->_immutable['body']);
                 $this->_read_index = 0;
             }
             else {
                 while ( $count-- > 0 ) {
-                    prev($this->body);
+                    prev($this->_immutable['body']);
                     $this->_read_index--;
-                    if ( is_null(key($this->body)) ) {
+                    if ( is_null(key($this->_immutable['body'])) ) {
                         break;
                     }
                 }

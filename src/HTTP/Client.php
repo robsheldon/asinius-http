@@ -69,21 +69,24 @@ const SSL_DISABLE      = -1;
 
 class Client
 {
-    private $_user_agent = DEFAULT_USERAGENT;
-    private $_curl = null;
-    private $_ssl_mode = SSL_ON;
+    private $_user_agent    = DEFAULT_USERAGENT;
+    private $_curl          = null;
+    private $_ssl_mode      = SSL_ON;
+    private $_cookies       = [];
+    private $_last_request  = [];
 
 
     /**
      * Execute the current request and parse the response.
      *
      * @param   string      $url
+     * @param   array       $headers
      *
      * @throws  RuntimeException
      *
      * @return  \Asinius\HTTP\Response
      */
-    private function _exec ($url)
+    private function _exec ($url, $headers = [])
     {
         $response_values = [
             'url'               => $url,
@@ -101,8 +104,22 @@ class Client
         if ( stripos($url, 'https://') === 0 && $ssl_mode == SSL_OFF ) {
             $this->ssl_mode(SSL_ON);
         }
+        //  Include any optional http headers from the application.
+        if ( ! empty($headers) ) {
+            $headers = array_map(function($header_key, $header_value){
+                return "$header_key: $header_value";
+            }, array_keys($headers), $headers);
+            curl_setopt($this->_curl, CURLOPT_HTTPHEADER, $headers);
+        }
+        //  Add cookies.
+        if ( ! empty($this->_cookies) ) {
+            curl_setopt($this->_curl, CURLOPT_COOKIE, implode('; ', array_map(function($cookie_name, $cookie_value){
+                return "$cookie_name=$cookie_value";
+            }, array_keys($this->_cookies), $this->_cookies)));
+        }
         curl_setopt($this->_curl, CURLOPT_URL, $url);
         $response_values['body'] = curl_exec($this->_curl);
+        $this->_last_request = curl_getinfo($this->_curl);
         if ( ($error_number = curl_errno($this->_curl)) !== 0 ) {
             if ( $error_number == 6 ) {
                 //  Failed to resolve host. Is there a network connection?
@@ -127,6 +144,17 @@ class Client
             $response_values['response_string'] = array_shift($headers);
             foreach ($headers as $header) {
                 list($label, $value) = explode(': ', $header, 2);
+                if ( $label === 'Set-Cookie' ) {
+                    $cookie_params = explode('; ', $value);
+                    foreach ($cookie_params as $param) {
+                        //  This is the wrong way to parse cookies. It's a
+                        //  quick hack until cookie parsing is completed.
+                        //  TODO.
+                        list($param_name, $param_value) = explode('=', $param, 2);
+                        $this->_cookies[$param_name] = $param_value;
+                        break;
+                    }
+                }
                 $response_values['response_headers'][$label] = $value;
             }
             //  Try to parse the response string, and if it contains a code
@@ -159,12 +187,15 @@ class Client
     {
         $this->_curl = curl_init();
         //  Set some sensible defaults.
-        curl_setopt($this->_curl, CURLOPT_FAILONERROR, true);
-        curl_setopt($this->_curl, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($this->_curl, CURLOPT_MAXREDIRS, 5);
-        curl_setopt($this->_curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($this->_curl, CURLOPT_HEADER, true);
-        curl_setopt($this->_curl, CURLINFO_HEADER_OUT, true);
+        curl_setopt_array($this->_curl, [
+            CURLOPT_FAILONERROR     => true,
+            CURLOPT_AUTOREFERER     => true,
+            CURLOPT_FOLLOWLOCATION  => true,
+            CURLOPT_MAXREDIRS       => 5,
+            CURLOPT_RETURNTRANSFER  => true,
+            CURLOPT_HEADER          => true,
+            CURLINFO_HEADER_OUT     => true,
+        ]);
     }
 
 
@@ -233,6 +264,17 @@ class Client
 
 
     /**
+     * Return the cookies currently stored in this client.
+     *
+     * @return  array
+     */
+    public function cookies ()
+    {
+        return $this->_cookies;
+    }
+
+
+    /**
      * Send an http GET request and return the body of the response, if any.
      *
      * @param   string      $url
@@ -249,7 +291,7 @@ class Client
             throw new \RuntimeException('The internal curl object has disappeared');
         }
         curl_setopt($this->_curl, CURLOPT_HTTPGET, true);
-        return $this->_exec($url);
+        return $this->_exec($url, $headers);
     }
 
 
@@ -276,7 +318,7 @@ class Client
             }
             curl_setopt($this->_curl, CURLOPT_POSTFIELDS, $parameters);
         }
-        return $this->_exec($url);
+        return $this->_exec($url, $headers);
     }
 
 }

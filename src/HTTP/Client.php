@@ -197,7 +197,6 @@ class Client
         $this->_curl = curl_init();
         //  Set some sensible defaults.
         curl_setopt_array($this->_curl, [
-            CURLOPT_FAILONERROR     => true,
             CURLOPT_AUTOREFERER     => true,
             CURLOPT_FOLLOWLOCATION  => true,
             CURLOPT_MAXREDIRS       => 5,

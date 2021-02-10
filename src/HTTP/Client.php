@@ -264,6 +264,21 @@ class Client
 
 
     /**
+     * Set an optional value for the curl object.
+     *
+     * @param   mixed       $option
+     * @param   mixed       $value
+     * 
+     * @return  void
+     */
+    public function setopt ($option, $value)
+    {
+        curl_setopt($this->_curl, $option, $value);
+    }
+
+
+
+    /**
      * Return the cookies currently stored in this client.
      *
      * @return  array

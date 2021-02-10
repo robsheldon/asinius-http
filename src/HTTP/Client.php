@@ -120,13 +120,22 @@ class Client
         curl_setopt($this->_curl, CURLOPT_URL, $url);
         $response_values['body'] = curl_exec($this->_curl);
         $this->_last_request = curl_getinfo($this->_curl);
-        if ( ($error_number = curl_errno($this->_curl)) !== 0 ) {
-            if ( $error_number == 6 ) {
+        switch ( curl_errno($this->_curl) ) {
+            case 0:
+                //  No error.
+                break;
+            case 6:
                 //  Failed to resolve host. Is there a network connection?
                 $connection = \Asinius\Network::test();
                 throw new \RuntimeException("cURL could not connect to the server for $url. A network test has been completed. " . $connection['message']);
-            }
-            throw new \RuntimeException(curl_error($this->_curl), $error_number);
+                break;
+            case 22:
+                //  Server returned a status code >= 400.
+                //  This gets passed back to the application.
+                break;
+            default:
+                throw new \RuntimeException(curl_error($this->_curl), curl_errno($this->_curl));
+                break;
         }
         if ( $response_values['body'] === false ) {
             throw new \RuntimeException('Unhandled error when sending http(s) request');

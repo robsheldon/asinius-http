@@ -344,4 +344,31 @@ class Client
         return $this->_exec($url, $headers);
     }
 
+
+    /**
+     * Send an http DELETE request and return the body of the response, if any.
+     *
+     * @param   string      $url
+     * @param   mixed       $parameters
+     * @param   array       $headers
+     *
+     * @throws  RuntimeException
+     * 
+     * @return  \Asinius\HTTP\Response
+     */
+    public function delete ($url, $parameters = false, $headers = [])
+    {
+        if ( is_null($this->_curl) ) {
+            throw new \RuntimeException('The internal curl object has disappeared');
+        }
+        curl_setopt($this->_curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
+        if ( $parameters !== false ) {
+            if ( is_array($parameters) ) {
+                $parameters = http_build_query($parameters);
+            }
+            curl_setopt($this->_curl, CURLOPT_POSTFIELDS, $parameters);
+        }
+        return $this->_exec($url, $headers);
+    }
+
 }

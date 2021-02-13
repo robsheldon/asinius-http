@@ -346,6 +346,33 @@ class Client
 
 
     /**
+     * Send an http PUT request and return the body of the response, if any.
+     *
+     * @param   string      $url
+     * @param   mixed       $parameters
+     * @param   array       $headers
+     *
+     * @throws  RuntimeException
+     * 
+     * @return  \Asinius\HTTP\Response
+     */
+    public function put ($url, $parameters = false, $headers = [])
+    {
+        if ( is_null($this->_curl) ) {
+            throw new \RuntimeException('The internal curl object has disappeared');
+        }
+        curl_setopt($this->_curl, CURLOPT_CUSTOMREQUEST, 'PUT');
+        if ( $parameters !== false ) {
+            if ( is_array($parameters) ) {
+                $parameters = http_build_query($parameters);
+            }
+            curl_setopt($this->_curl, CURLOPT_POSTFIELDS, $parameters);
+        }
+        return $this->_exec($url, $headers);
+    }
+
+
+    /**
      * Send an http DELETE request and return the body of the response, if any.
      *
      * @param   string      $url

@@ -3,9 +3,9 @@
     "type": "library",
     "license": "MIT",
     "require": {
-        "php": "~5.3 | ^7.0",
+        "php": "~5.3 | ^7.0 | ^8.0",
         "lib-curl": "*",
-        "asinius/asinius": "*"
+        "asinius/asinius": "*@dev"
     },
     "autoload": {
         "psr-4": {

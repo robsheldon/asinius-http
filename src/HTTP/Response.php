@@ -71,9 +71,9 @@ class Response implements \Asinius\Datastream
     private function _parse_content_type ()
     {
         $content_type_patterns = [
-            '|^application/json(; .*)?$|'   => 'application/json',
-            '|^text/html(; .*)?$|'          => 'text/html',
-            '|^text/plain(; .*)?$|'         => 'text/plain',
+            '|^application/json(;.*)?$|'    => 'application/json',
+            '|^text/html(;.*)?$|'           => 'text/html',
+            '|^text/plain(;.*)?$|'          => 'text/plain',
             '|^.*$|'                        => $this->_raw['content_type'],
         ];
         foreach ($content_type_patterns as $pattern => $content_type) {

@@ -34,6 +34,7 @@
 
 namespace Asinius\HTTP;
 
+use RuntimeException;
 
 /*******************************************************************************
 *                                                                              *
@@ -69,7 +70,7 @@ class URL
      * 
      * @param   mixed       $client
      *
-     * @throws  \RuntimeException
+     * @throws  RuntimeException
      * 
      * @return  void
      */
@@ -78,11 +79,11 @@ class URL
         if ( $client === false ) {
             return static::$_client;
         }
-        if ( is_null($client) || (is_object($client) && is_a($property, '\Asinius\HTTP\Client')) ) {
+        if ( is_null($client) || (is_object($client) && is_a($client, '\Asinius\HTTP\Client')) ) {
             static::$_client = $client;
         }
         else {
-            throw new \RuntimeException("HTTP client must be an \Asinius\HTTP\Client or subclass");
+            throw new RuntimeException("HTTP client must be an \Asinius\HTTP\Client or subclass");
         }
     }
 

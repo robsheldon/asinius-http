@@ -46,6 +46,8 @@
 
 namespace Asinius\HTTP;
 
+use RuntimeException;
+
 /*******************************************************************************
 *                                                                              *
 *   Constants                                                                  *
@@ -127,18 +129,16 @@ class Client
             case 6:
                 //  Failed to resolve host. Is there a network connection?
                 $connection = \Asinius\Network::test();
-                throw new \RuntimeException("cURL could not connect to the server for $url. A network test has been completed. " . $connection['message']);
-                break;
+                throw new RuntimeException("cURL could not connect to the server for $url. A network test has been completed. " . $connection['message']);
             case 22:
                 //  Server returned a status code >= 400.
                 //  This gets passed back to the application.
                 break;
             default:
-                throw new \RuntimeException(curl_error($this->_curl), curl_errno($this->_curl));
-                break;
+                throw new RuntimeException(curl_error($this->_curl), curl_errno($this->_curl));
         }
         if ( $response_values['body'] === false ) {
-            throw new \RuntimeException('Unhandled error when sending http(s) request');
+            throw new RuntimeException('Unhandled error when sending http(s) request');
         }
         $response_values['response_code'] = curl_getinfo($this->_curl, CURLINFO_RESPONSE_CODE);
         $response_values['content_type']  = curl_getinfo($this->_curl, CURLINFO_CONTENT_TYPE);
@@ -188,9 +188,7 @@ class Client
 
 
     /**
-     * Return a new http client.
-     *
-     * @return  \Asinius\HTTP\Client
+     * Create a new http client.
      */
     public function __construct ()
     {
@@ -265,7 +263,7 @@ class Client
     public function user_agent ($user_agent)
     {
         if ( ! is_string($user_agent) ) {
-            throw new \RuntimeException('Not a supported user agent type: ' . gettype($user_agent), \Asinius\EINVAL);
+            throw new RuntimeException('Not a supported user agent type: ' . gettype($user_agent), \Asinius\EINVAL);
         }
         $this->_user_agent = $user_agent;
     }
@@ -311,7 +309,7 @@ class Client
     public function get ($url, $parameters = false, $headers = [])
     {
         if ( is_null($this->_curl) ) {
-            throw new \RuntimeException('The internal curl object has disappeared');
+            throw new RuntimeException('The internal curl object has disappeared');
         }
         curl_setopt($this->_curl, CURLOPT_HTTPGET, true);
         return $this->_exec($url, $headers);
@@ -332,7 +330,7 @@ class Client
     public function post ($url, $parameters = false, $headers = [])
     {
         if ( is_null($this->_curl) ) {
-            throw new \RuntimeException('The internal curl object has disappeared');
+            throw new RuntimeException('The internal curl object has disappeared');
         }
         curl_setopt($this->_curl, CURLOPT_POST, true);
         if ( $parameters !== false ) {
@@ -359,7 +357,7 @@ class Client
     public function put ($url, $parameters = false, $headers = [])
     {
         if ( is_null($this->_curl) ) {
-            throw new \RuntimeException('The internal curl object has disappeared');
+            throw new RuntimeException('The internal curl object has disappeared');
         }
         curl_setopt($this->_curl, CURLOPT_CUSTOMREQUEST, 'PUT');
         if ( $parameters !== false ) {
@@ -386,7 +384,7 @@ class Client
     public function delete ($url, $parameters = false, $headers = [])
     {
         if ( is_null($this->_curl) ) {
-            throw new \RuntimeException('The internal curl object has disappeared');
+            throw new RuntimeException('The internal curl object has disappeared');
         }
         curl_setopt($this->_curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
         if ( $parameters !== false ) {

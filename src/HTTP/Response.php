@@ -47,6 +47,8 @@
 
 namespace Asinius\HTTP;
 
+use RuntimeException;
+
 /*******************************************************************************
 *                                                                              *
 *   \Asinius\HTTP\Response                                                     *
@@ -157,7 +159,7 @@ class Response implements \Asinius\Datastream
      * 
      * @return  mixed
      */
-    public function __get ($property)
+    public function __get (string $property)
     {
         switch ($property) {
             case 'body':
@@ -180,7 +182,7 @@ class Response implements \Asinius\Datastream
                     return $this->_raw[$property];
                 }
                 if ( array_key_exists($property, $this->_properties) ) {
-                    return $this->_properties[$properties];
+                    return $this->_properties[$property];
                 }
                 throw new \RuntimeException("Undefined property: \"$property\"");
         }
@@ -199,7 +201,7 @@ class Response implements \Asinius\Datastream
      * 
      * @return  void
      */
-    public function __set ($property, $value)
+    public function __set (string $property, $value)
     {
         if ( array_key_exists($property, $this->_immutable) || array_key_exists($property, $this->_raw) ) {
             throw new \RuntimeException("The $property is immutable");
@@ -215,7 +217,7 @@ class Response implements \Asinius\Datastream
      *
      * @return  boolean
      */
-    public function __isset ($property)
+    public function __isset (string $property) : bool
     {
         return array_key_exists($property, $this->_immutable) || array_key_exists($property, $this->_properties);
     }

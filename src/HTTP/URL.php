@@ -8,7 +8,7 @@
 *                                                                              *
 *   LICENSE                                                                    *
 *                                                                              *
-*   Copyright (c) 2020 Rob Sheldon <rob@rescue.dev>                            *
+*   Copyright (c) 2022 Rob Sheldon <rob@rescue.dev>                            *
 *                                                                              *
 *   Permission is hereby granted, free of charge, to any person obtaining a    *
 *   copy of this software and associated documentation files (the "Software"), *

@@ -103,7 +103,7 @@ class Client
         //  If the URL begins with "https" and SSL is not disabled, then
         //  temporarily enable it.
         $ssl_mode = $this->_ssl_mode;
-        if ( stripos($url, 'https://') === 0 && $ssl_mode == SSL_OFF ) {
+        if ( stripos($url, 'https://') === 0 && $ssl_mode === SSL_OFF ) {
             $this->ssl_mode(SSL_ON);
         }
         //  Include any optional http headers from the application.
@@ -220,7 +220,7 @@ class Client
     /**
      * Set the SSL mode for the current client. SSL_ON will enable SSL verification
      * for all subsequent calls through this client; SSL_OFF will turn off SSL
-     * verification by default except for URLs beginning in "https://"; SSL_DSIABLE
+     * verification by default except for URLs beginning in "https://"; SSL_DISABLE
      * will turn off SSL verification under all circumstances.
      *
      * @param   int         $mode
@@ -312,6 +312,9 @@ class Client
             throw new RuntimeException('The internal curl object has disappeared');
         }
         curl_setopt($this->_curl, CURLOPT_HTTPGET, true);
+        if ( $parameters !== false ) {
+            $url = sprintf('%s?%s', $url, http_build_query($parameters));
+        }
         return $this->_exec($url, $headers);
     }
 

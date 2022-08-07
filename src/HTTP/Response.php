@@ -270,10 +270,12 @@ class Response implements \Asinius\Datastream
 
     /**
      * Return true if there is nothing more to read(), false otherwise.
+     *
+     * @return  boolean
      */
-    public function empty ()
+    public function empty (): bool
     {
-        return is_null($this->peek());
+        return $this->_immutable['code'] === '' || is_null($this->peek());
     }
 
 

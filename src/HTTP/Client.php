@@ -106,6 +106,7 @@ class Client
         if ( stripos($url, 'https://') === 0 && $ssl_mode === SSL_OFF ) {
             $this->ssl_mode(SSL_ON);
         }
+        $using_ssl = ($this->_ssl_mode === SSL_ON);
         //  Include any optional http headers from the application.
         if ( ! empty($headers) ) {
             $headers = array_map(function($header_key, $header_value){
@@ -122,6 +123,10 @@ class Client
         curl_setopt($this->_curl, CURLOPT_URL, $url);
         $response_values['body'] = curl_exec($this->_curl);
         $this->_last_request = curl_getinfo($this->_curl);
+        //  Restore the SSL mode before throw()ing an exception or returning early..
+        if ( $ssl_mode != $this->_ssl_mode ) {
+            $this->ssl_mode($ssl_mode);
+        }
         switch ( curl_errno($this->_curl) ) {
             case 0:
                 //  No error.
@@ -129,11 +134,24 @@ class Client
             case 6:
                 //  Failed to resolve host. Is there a network connection?
                 $connection = \Asinius\Network::test();
-                throw new RuntimeException("cURL could not connect to the server for $url. A network test has been completed. " . $connection['message']);
+                throw new RuntimeException("curl could not connect to the server for $url. A network test has been completed. " . $connection['message']);
             case 22:
                 //  Server returned a status code >= 400.
                 //  This gets passed back to the application.
                 break;
+            case 35:
+                //  SSL_ERROR_SYSCALL
+                if ( $using_ssl ) {
+                    throw new RuntimeException("curl returned SSL_ERROR_SYSCALL while negotiating an ssl connection; this could be because the server requires an unsupported protocol or doesn't support SSL at all", 35);
+                }
+                throw new RuntimeException(curl_error($this->_curl), curl_errno($this->_curl));
+            case 52:
+                //  Empty response from server. curl treats this like an error,
+                //  but let's pass this back to the application with a Response
+                //  object that's also empty.
+                //  Note: common causes for this include trying to reach an https
+                //  server over http.
+                return new Response($response_values);
             default:
                 throw new RuntimeException(curl_error($this->_curl), curl_errno($this->_curl));
         }
@@ -178,10 +196,6 @@ class Client
                 }
             }
             break;
-        }
-        //  Restore the SSL mode.
-        if ( $ssl_mode != $this->_ssl_mode ) {
-            $this->ssl_mode($ssl_mode);
         }
         return new Response($response_values);
     }

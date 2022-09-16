@@ -160,6 +160,19 @@ class Client
         }
         $response_values['response_code'] = curl_getinfo($this->_curl, CURLINFO_RESPONSE_CODE);
         $response_values['content_type']  = curl_getinfo($this->_curl, CURLINFO_CONTENT_TYPE);
+        //  Servers may send "HTTP/1.1 100 Continue", or similar, here, followed
+        //  by 0 or more blank lines, followed by the actual response headers.
+        //  If the server -only- sends back a Continue, then that should be
+        //  returned to the application.
+        $response_values['body'] = preg_replace_callback(
+            '#^http/[0-9.]+\s+100\s+continue(\s+|$)#i',
+            function (array $matches) use (&$response_values){
+                $response_values['response_string'] = trim($matches[0]);
+                return '';
+            },
+            $response_values['body'],
+            1
+        );
         //  Separate the returned headers from the returned body by looking
         //  for the first blank line.
         while ( true ) {

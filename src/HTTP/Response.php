@@ -102,8 +102,11 @@ class Response implements \Asinius\Datastream
         switch ($this->content_type) {
             case 'application/json':
                 //  Parse a returned JSON string.
-                if ( empty($this->_raw['body']) || is_null($json_body = json_decode($this->_raw['body'], true)) ) {
-                    throw new \RuntimeException('Server returned an invalid JSON response');
+                if ( empty($this->_raw['body']) ) {
+                    return null;
+                }
+                if ( is_null($json_body = json_decode($this->_raw['body'], true)) ) {
+                    throw new \RuntimeException(json_last_error_msg(), json_last_error());
                 }
                 $this->_immutable['body'] = $json_body;
                 break;
